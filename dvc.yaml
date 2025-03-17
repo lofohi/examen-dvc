@@ -1,0 +1,49 @@
+stages:
+  split_data:
+    cmd: python src/data/split_data.py
+    deps:
+      - src/data/split_data.py
+      - data/raw_data
+    outs:
+      - data/processed_data/X_train.csv
+      - data/processed_data/X_test.csv
+      - data/processed_data/y_train.csv
+      - data/processed_data/y_test.csv
+  
+  normalisation:
+    cmd: python src/data/normalisation.py
+    deps:
+    - data/processed_data/X_test.csv
+    - data/processed_data/X_train.csv
+    - src/data/normalisation.py
+    outs:
+    - data/processed_data/X_test_scaled.csv
+    - data/processed_data/X_train_scaled.csv
+  
+  best_parameters:
+    cmd: python src/models/best_param.py
+    deps:
+    - data/processed_data
+    - src/models/best_param.py
+    outs:
+    - models/best_rf_params.pkl
+  
+  train:
+    cmd: python src/models/train_model.py
+    deps:
+    - data/processed_data
+    - models/best_rf_params.pkl
+    - src/models/train_model.py
+    outs:
+    - models/trained_model.joblib
+  
+  Prediction_evaluation:
+    cmd: python src/models/predict_evaluate_model.py
+    deps:
+    - models/trained_model.joblib
+    - src/models/predict_evaluate_model.py
+    outs:
+    - data/predictions.csv
+    metrics:
+    - metrics/scores.json:
+        cache: false
